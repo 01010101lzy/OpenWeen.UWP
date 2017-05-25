@@ -11,6 +11,10 @@ using Windows.Security.Authentication.Web;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
+using System.Linq;
+using Windows.UI.Core;
+using OpenWeen.UWP.Common.Entities;
 
 // “空白页”项模板在 http://go.microsoft.com/fwlink/?LinkId=234238 上提供
 
@@ -65,36 +69,35 @@ namespace OpenWeen.UWP.View
                         throw new UnauthorizedAccessException();
                     }
                     SettingHelper.SetListSetting(SettingNames.AccessToken, new[] { token }, SetListSettingOption.AddIfExists);
+                    Settings.SelectedUserIndex = Settings.AccessToken.Count() - 1;
                     Core.Api.Entity.AccessToken = token;
+                    Window.Current.Content = new ExtendedSplash(null);
                 }
             }
             catch (UriFormatException)
             {
                 await new MessageDialog("请输入正确的参数内容").ShowAsync();
+                return;
             }
             catch (FileNotFoundException)
             {
                 //user can not connect to the auth page and close the auth page
+                return;
             }
             catch (UnauthorizedAccessException)
             {
                 await new MessageDialog("登陆失败").ShowAsync();
-            }
-            var sit = new SitbackAndRelaxDialog();
-            var sitTask = sit.ShowAsync();
-            await InitUid();
-            sitTask.Cancel();
-            sit.Hide();
-            Frame.Navigate(typeof(MainPage));
-            while (Frame.BackStack.Count > 0)
-            {
-                Frame.BackStack.RemoveAt(0);
+                return;
             }
         }
-
-        private async Task InitUid()
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            StaticResource.Uid = long.Parse(await Core.Api.User.Account.GetUid());
+            base.OnNavigatedTo(e);
+            Frame.BackStack.Clear();
+            SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility = AppViewBackButtonVisibility.Collapsed;
+            var cahcesize = Frame.CacheSize;
+            Frame.CacheSize = 0;
+            Frame.CacheSize = cahcesize;
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)

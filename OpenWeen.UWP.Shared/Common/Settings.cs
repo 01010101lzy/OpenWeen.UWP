@@ -8,16 +8,20 @@ namespace OpenWeen.UWP.Shared.Common
 {
     internal static class Settings
     {
-        public static double ImageSize
+        public static bool EnableWaterFall
         {
-            get
-            {
-                return GetSetting(SettingNames.ImageSize, 100d);
-            }
-            set
-            {
-                SetSetting(SettingNames.ImageSize, value);
-            }
+            get { return GetSetting(SettingNames.EnableWaterFall, false); }
+            set { SetSetting(SettingNames.EnableWaterFall, value); }
+        }
+        public static bool IsMergeMentionAndComment
+        {
+            get { return GetSetting(SettingNames.IsMergeMentionAndComment, false); }
+            set { SetSetting(SettingNames.IsMergeMentionAndComment, value); }
+        }
+        public static int LoadCount
+        {
+            get { return GetSetting(SettingNames.LoadCount, 20); }
+            set { SetSetting(SettingNames.LoadCount, value); }
         }
         public static IEnumerable<long> BlockUser
         {
@@ -40,6 +44,11 @@ namespace OpenWeen.UWP.Shared.Common
             {
                 SetListSetting(SettingNames.BlockText, value);
             }
+        }
+        public static int SelectedUserIndex
+        {
+            get { return GetSetting(SettingNames.SelectedUserIndex, 0); }
+            set { SetSetting(SettingNames.SelectedUserIndex, value); }
         }
         public static IEnumerable<string> AccessToken
         {
@@ -120,6 +129,39 @@ namespace OpenWeen.UWP.Shared.Common
             }
         }
 
+        public static bool IsNightMode
+        {
+            get { return GetSetting(SettingNames.IsNightMode, false); }
+            set { SetSetting(SettingNames.IsNightMode, value); }
+        }
+
+        public static bool IsOffImage
+        {
+            get { return GetSetting(SettingNames.IsOffImage, false); }
+            set { SetSetting(SettingNames.IsOffImage, value); }
+        }
+        
+        public static bool IsAutoNightMode
+        {
+            get { return GetSetting(SettingNames.IsAutoNightMode, false); }
+            set { SetSetting(SettingNames.IsAutoNightMode, value); }
+        }
+
+        public static bool IsAutoOffImage
+        {
+            get { return GetSetting(SettingNames.IsAutoOffImage, false); }
+            set { SetSetting(SettingNames.IsAutoOffImage, value); }
+        }
+        public static TimeSpan AutoNightModeOnTime
+        {
+            get { return GetSetting(SettingNames.AutoNightModeOnTime, new TimeSpan(22, 00, 00)); }
+            set { SetSetting(SettingNames.AutoNightModeOnTime, value); }
+        }
+        public static TimeSpan AutoNightModeOffTime
+        {
+            get { return GetSetting(SettingNames.AutoNightModeOnTime, new TimeSpan(7, 00, 00)); }
+            set { SetSetting(SettingNames.AutoNightModeOnTime, value); }
+        }
     }
     internal enum NotifyDuration
     {

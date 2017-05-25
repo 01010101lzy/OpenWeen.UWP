@@ -14,11 +14,12 @@
         <RowDefinition Height="180"/>
     </Grid.RowDefinitions>
     <Canvas Grid.Row="0" Grid.RowSpan="2">
-        <Image x:Name="extendedSplashImage" Source="ms-appx:///Assets/SplashScreen.png"/>
+        <Image HorizontalAlignment="Center" VerticalAlignment="Center" x:Name="extendedSplashImage" Source="ms-appx:///Assets/SplashScreen.png"/>
     </Canvas>
     <StackPanel Grid.Row="1" HorizontalAlignment="Center">
-        <ProgressRing Foreground="White" Name="splashProgressRing" IsActive="True" Width="20" HorizontalAlignment="Center" />
         <TextBlock TextWrapping="Wrap" TextAlignment="Center" Padding="5" HorizontalAlignment="Center">坐和放宽，这不需要太久
         </TextBlock>
+        <ProgressBar Foreground="White" Name="splashProgressRing" IsIndeterminate="True"/>
+        <TextBlock Padding="5" x:Name="StateTextblock" TextAlignment="Center"/>
     </StackPanel>
 </Grid>

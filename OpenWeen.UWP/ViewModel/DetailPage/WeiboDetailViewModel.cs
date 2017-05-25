@@ -1,50 +1,71 @@
 ﻿using System;
 using System.ComponentModel;
 using OpenWeen.Core.Model.Status;
+using OpenWeen.UWP.Common.Controls;
+using Nito.AsyncEx;
+using System.Threading.Tasks;
+using PropertyChanged;
+using System.Linq;
 
 namespace OpenWeen.UWP.ViewModel.DetailPage
 {
-    public class WeiboDetailViewModel : INotifyPropertyChanged
+    [ImplementPropertyChanged]
+    public class WeiboDetailViewModel
     {
-        public MessageModel Item { get; private set; }
+        public INotifyTaskCompletion<MessageModel> Item { get; }
         public WeiboRepostViewModel Repost { get; }
         public WeiboCommentViewModel Comment { get; }
-
-        public bool IsLoading { get; private set; } = true;
+        public string SendText { get; set; }
 
         public WeiboDetailViewModel(MessageModel item)
         {
-            Init(item);
+            Item = NotifyTaskCompletion.Create(Init(item));
             Repost = new WeiboRepostViewModel(item.ID);
             Comment = new WeiboCommentViewModel(item.ID);
             Repost.Refresh();
             Comment.Refresh();
         }
 
-        private async void Init(MessageModel item)
+        private async Task<MessageModel> Init(MessageModel item)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Item)));
-            if (item.IsLongText)
+            if (item.Text.Contains("全文： http://m.weibo.cn/") || item.Text.Contains("http://m.weibo.cn/client/version"))
             {
-                try
-                {
-                    Item = await Core.Api.Statuses.Query.GetStatus(item.ID, true);
-                    Item.Text = Item.LongText.Content;
-                    Item.UrlStruct = Item.LongText.UrlStruct;
-                }
-                catch (Exception)
-                {
-                }
+                var status = await Core.Api.Statuses.Query.GetStatus(item.ID, true);
+                status.Text = status.LongText.Content;
+                //Item.UrlStruct = Item.LongText.UrlStruct;
+                return status;
             }
             else
             {
-                Item = item;
+                return item;
             }
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Item)));
-            IsLoading = false;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsLoading)));
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
+        public async void NewRepost()
+        {
+            var sit = new SitbackAndRelaxDialog();
+            sit.ShowAsync();
+            try
+            {
+                var text = Item.Result.RetweetedStatus == null ? $"{SendText}" : $"{SendText}//@{Item.Result.User.Name}:{Item.Result.Text}";
+                await Core.Api.Statuses.PostWeibo.Repost(Item.Result.ID, text.Length > 140 ? text.Remove(139) : text);
+            }
+            catch { Notification.Show("发送失败"); }
+            sit.Hide();
+            SendText = "";
+        }
+        public async void NewComment()
+        {
+            if (string.IsNullOrEmpty(SendText))
+                return;
+            var sit = new SitbackAndRelaxDialog();
+            sit.ShowAsync();
+            try
+            {
+                await Core.Api.Comments.PostComment(Item.Result.ID, SendText.Length > 140 ? SendText.Remove(139) : SendText);
+            }
+            catch { Notification.Show("发送失败"); }
+            sit.Hide();
+            SendText = "";
+        }
     }
 }

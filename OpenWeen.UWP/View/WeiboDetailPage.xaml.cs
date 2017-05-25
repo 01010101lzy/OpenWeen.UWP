@@ -19,37 +19,37 @@ namespace OpenWeen.UWP.View
     public sealed partial class WeiboDetailPage : Page
     {
         public WeiboActionModel ActionModel { get; } = WeiboActionModel.Instance;
-        public WeiboDetailViewModel WeiboDetailVM { get; private set; }
+        public WeiboDetailViewModel ViewModel { get; private set; }
 
         public WeiboDetailPage()
         {
             this.InitializeComponent();
+            this.DataContext = this;
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            WeiboDetailVM = e.Parameter as WeiboDetailViewModel;
+            ViewModel = e.Parameter as WeiboDetailViewModel;
         }
 
         private void Reshare_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            ActionModel.Repost(sender, new WeiboActionEventArgs(WeiboDetailVM.Item));
+            ActionModel.Repost(sender, new WeiboActionEventArgs(ViewModel.Item.Result));
         }
 
         private void Comment_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            ActionModel.Comment(sender, new WeiboActionEventArgs(WeiboDetailVM.Item));
+            ActionModel.Comment(sender, new WeiboActionEventArgs(ViewModel.Item.Result));
         }
 
-        private async void Favor_Tapped(object sender, TappedRoutedEventArgs e)
+        private void Favor_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            WeiboDetailVM.Item.Favorited = await ActionModel.FavorAndChangeSymbolIcon(WeiboDetailVM.Item, FavorIcon);
+            ActionModel.Favor(this, new WeiboActionEventArgs(ViewModel.Item.Result));
         }
 
         private void WeiboImageList_PictureClick(object sender, WeiboPictureClickEventArgs e)
         {
-            e.DataContext = WeiboDetailVM.Item;
             ActionModel.PictureClick(sender, e);
         }
 
@@ -66,6 +66,11 @@ namespace OpenWeen.UWP.View
                 e.Handled = true;
                 ActionModel.ItemClick(this, new WeiboItemClickEventArgs(context as MessageModel));
             }
+        }
+
+        private void Like_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            ActionModel.Like(sender, new WeiboActionEventArgs(ViewModel.Item.Result));
         }
     }
 }

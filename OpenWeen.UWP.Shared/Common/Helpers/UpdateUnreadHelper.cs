@@ -109,7 +109,7 @@ namespace OpenWeen.UWP.Shared.Common.Helpers
                 builder.Append($"{unread.Follower} 个新粉丝");
                 _count += unread.Follower;
             }
-            if (unread.Dm > 0 && unread.Dm != _prevUnread.Dm && Settings.IsMessageNotify)
+            if (unread.Dm > 0 && unread.Dm != _prevUnread?.Dm && Settings.IsMessageNotify)
             {
                 builder.Append($"{unread.Dm} 条新私信");
                 _count += unread.Dm;

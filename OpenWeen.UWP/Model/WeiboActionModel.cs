@@ -44,45 +44,33 @@ namespace OpenWeen.UWP.Model
             else if (e.TargetItem is CommentModel)
             {
                 var data = e.TargetItem as CommentModel;
-                (Window.Current.Content as Frame).Navigate(typeof(PostWeiboPage), new ReplyCommentData(data.Status.ID, data.ID, $"回复@{data.User.ScreenName}:"));
+                (Window.Current.Content as Frame).Navigate(typeof(PostWeiboPage), new ReplyCommentData(data.Status.ID, data.ID, $"回复@{data.User.Name}:"));
             }
         }
 
         public void Repost(object sender, WeiboActionEventArgs e)
         {
             var item = e.TargetItem as MessageModel;
-            (Window.Current.Content as Frame).Navigate(typeof(PostWeiboPage), new RepostData(item.ID, item.RetweetedStatus == null ? "" : $"//@{item.User.Name}:{item.Text}"));
+            if (item != null)
+                (Window.Current.Content as Frame).Navigate(typeof(PostWeiboPage), new RepostData(item.ID, item.RetweetedStatus == null ? "" : $"//@{item.User.Name}:{item.Text}"));
         }
-
-        private bool _isFavoring;
-
+        
         public async void Favor(object sender, WeiboActionEventArgs e)
         {
-            if (_isFavoring)
-                return;
-            _isFavoring = true;
             if (!(e.TargetItem is MessageModel))
                 throw new ArgumentException("TargetItem must be MessageModel");
             var item = e.TargetItem as MessageModel;
-            var list = sender as WeiboList;
-            var favorIcon = MoreVisualTreeHelper.GetObjectByName<SymbolIcon>(list.ContainerFromItem(item), "FavorIcon");
             try
             {
-                (list.ItemFromContainer(list.ContainerFromItem(item)) as MessageModel).Favorited = await FavorAndChangeSymbolIcon(item, favorIcon);
+                var state = item.Favorited ?
+                    (await Core.Api.Favorites.RemoveFavor(item.ID)).Status.Favorited :
+                    (await Core.Api.Favorites.AddFavor(item.ID)).Status.Favorited;
+                Notification.Show(state ? "收藏成功" : "取消收藏成功");
             }
-            catch (Exception ex) when (ex is HttpRequestException || ex is WebException)
+            catch
             {
+                Notification.Show("收藏失败");
             }
-            _isFavoring = false;
-        }
-
-        internal async Task<bool> FavorAndChangeSymbolIcon(MessageModel item, SymbolIcon favorIcon)
-        {
-            var state = item.Favorited ?
-                (await Core.Api.Favorites.RemoveFavor(item.ID)).Status.Favorited :
-                (await Core.Api.Favorites.AddFavor(item.ID)).Status.Favorited;
-            favorIcon.Foreground = state ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.LightGray);
-            return state;
         }
 
         public async void PictureClick(object sender, WeiboPictureClickEventArgs e)
@@ -105,9 +93,30 @@ namespace OpenWeen.UWP.Model
         {
             (Window.Current.Content as Frame).Navigate(typeof(MessagePage), new MessagePageViewModel(e.ClickedItem.User.ID, e.ClickedItem.User.ScreenName));
         }
-        public void Delete(object sender, WeiboMessageItemClickEventArgs e)
+        public async void Delete(object sender, WeiboActionEventArgs e)
         {
-            
+            try
+            {
+                await Core.Api.Statuses.PostWeibo.DeletePost(e.TargetItem.ID);
+                Notification.Show("删除成功");
+
+            }
+            catch
+            {
+                Notification.Show("删除失败");
+            }
+        }
+        public async void Like(object sender, WeiboActionEventArgs e)
+        {
+            try
+            {
+                await Core.Api.Attitudes.Like(e.TargetItem.ID);
+                Notification.Show("点赞成功");
+            }
+            catch
+            {
+                Notification.Show("点赞失败");
+            }
         }
     }
 }
